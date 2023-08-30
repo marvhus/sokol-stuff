@@ -35,44 +35,61 @@ init :: () {
 	desc._context = sapp_sgcontext();
 	sg_setup(*desc);
 
-	verts := float.[
-		// postions       // colors
-		 0.0,  0.5, 0.5,  1.0, 0.0, 0.0, 1.0,
-		 0.5, -0.5, 0.5,  0.0, 1.0, 0.0, 1.0,
-		-0.5, -0.5, 0.5,  0.0, 0.0, 1.0, 1.0,
+	// Vetex Buffer
+	verticies := float.[
+		// postions    colors
+		-0.5,  0.5,  0.5,  1.0, 0.0, 0.0, 1.0, // top left
+		 0.5,  0.5,  0.5,  0.0, 1.0, 0.0, 1.0, // top right
+		 0.5, -0.5,  0.5,  0.0, 0.0, 1.0, 1.0, // bottom right
+		-0.5, -0.5,  0.5,  1.0, 0.0, 0.0, 1.0, // bottom left
 	];
-	{
-		state.bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
-			data = sg_range.{
-				ptr = verts.data,
-				size = verts.count * size_of(float),
+	state.bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
+		type = .VERTEXBUFFER,
+		data = sg_range.{
+			ptr = verticies.data,
+			size = verticies.count * size_of(float),
+		},
+		size = verticies.count * size_of(float),
+		label = "quad-verticies",
+	});
+
+	// Index Buffer
+	indices := u16.[
+		0, 1, 2, // top right
+		0, 2, 3, // bottom left
+	];
+	state.bindings.index_buffer = sg_make_buffer(*sg_buffer_desc.{
+		type = .INDEXBUFFER,
+		data = sg_range.{
+			ptr = indices.data,
+			size = indices.count * size_of(u16),
+		},
+		size = indices.count * size_of(u16),
+		label = "quad-indices",
+	});
+
+	// Shader Pipeline
+	state.pipeline = sg_make_pipeline(*sg_pipeline_desc.{
+		shader = sg_make_shader(*sg_shader_desc.{
+			label = "simple_shader",
+			attrs[0].name = "position",
+			attrs[1].name = "color0",
+			vs = .{
+				entry = "main",
+				source = VERT_SHADER,
 			},
-			size = verts.count * size_of(float),
-			label = "triangle-verticies",
-		});
-	}
-	{
-		state.pipeline = sg_make_pipeline(*sg_pipeline_desc.{
-			shader = sg_make_shader(*sg_shader_desc.{
-				label = "simple_shader",
-				attrs[0].name = "position",
-				attrs[1].name = "color0",
-				vs = .{
-					entry = "main",
-					source = VERT_SHADER,
-				},
-				fs = .{
-					entry = "main",
-					source = FRAG_SHADER,
-				},
-			}),
-			layout = sg_layout_desc.{
-				attrs[0].format = .FLOAT3,
-				attrs[1].format = .FLOAT4,
+			fs = .{
+				entry = "main",
+				source = FRAG_SHADER,
 			},
-			label = "triangle-pipeline",
-		});
-	}
+		}),
+		index_type = .UINT16,
+		layout = sg_layout_desc.{
+			attrs[0].format = .FLOAT3,
+			attrs[1].format = .FLOAT4,
+		},
+		label = "quad-pipeline",
+	});
 
 	state.pass_action = .{
 		colors[0] = .{
@@ -91,7 +108,7 @@ frame :: () {
 
 	sg_apply_pipeline(state.pipeline);
 	sg_apply_bindings(*state.bindings);
-	sg_draw(0, 3, 1);
+	sg_draw(0, 6, 1);
 
 	sg_end_pass();
 	sg_commit();
