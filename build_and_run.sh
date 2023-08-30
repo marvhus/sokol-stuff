@@ -7,7 +7,7 @@ set -e
 cd "$(dirname "$(readlink -f "$0")")"
 
 echo '===== BUILD ====='
-jai -import_dir modules first.jai 
+jai first.jai -import_dir modules
 echo '====== RUN ======'
 ./bin/jmp
 echo '================='

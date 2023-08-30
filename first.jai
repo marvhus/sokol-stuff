@@ -3,27 +3,30 @@ main :: () {
 
 	workspace := compiler_create_workspace("JMP");
 	if !workspace {
-		print("Failed to create workspace.\n");
+		log_error("Failed to create workspace.\n");
 		return;
 	}
 
+	// Create outpur directory
 	make_directory_if_it_does_not_exist("bin");
 
-	// Set build options
-	target_options := get_build_options(workspace);
+	// configure build options
+	options := get_build_options(workspace);
 
-	target_options.output_executable_name = "jmp";
-	target_options.output_path = "bin/";
+	options.output_executable_name = "jmp";
+	options.output_path = "bin/";
 
-	set_build_options(target_options, workspace);
+	import_path: [..]string;
+	array_add(*import_path, tprint("modules/"));
+	array_add(*import_path, ..options.import_path);
+	options.import_path = import_path;
 
-	// Add file to build
-	compiler_begin_intercept(workspace);
-	add_build_file(tprint("%/src/main.jai", #filepath), workspace);
-	compiler_end_intercept(workspace);
-	
+	set_build_options(options, workspace);
+
+	// Add file to compile
+	add_build_file(tprint("src/main.jai"), workspace);
 }
-	#run main();
+#run main();
 
 #import "File";
 #import "Basic";
