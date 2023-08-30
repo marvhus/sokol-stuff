@@ -21,3 +21,14 @@ $ git clone --recurse-submodules -j8 git@github.com:marvhus/jmp.git
 $ git submodule init # If you haven't initialized it yet
 $ git submodule update
 ```
+
+# Build
+You can build the project using:
+```console
+$ jai -import_dir modules first.jai
+```
+
+If you are on Linux you can use the `build_and_run.sh` script to build and run the project.
+```console
+$ ./build_and_run.sh
+```
