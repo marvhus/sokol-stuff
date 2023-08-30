@@ -12,14 +12,12 @@ Version: beta 0.1.074b, built on 26 August 2023.
 ```
 
 # Clone with submodules
-```sh
-git clone --recurse-submodules -j8 git@github.com:marvhus/jmp.git
+```console
+$ git clone --recurse-submodules -j8 git@github.com:marvhus/jmp.git
 ```
 
 # Manually get/update submodules
-```sh
-git submodule init # If you haven't initialized it yet
-```
-```sh
-git submodule update
+```console
+$ git submodule init # If you haven't initialized it yet
+$ git submodule update
 ```
