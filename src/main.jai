@@ -4,6 +4,13 @@ state: struct {
 	pipeline    : sg_pipeline;
 	bindings    : sg_bindings;
 	pass_action : sg_pass_action;
+} = .{
+	pass_action = .{
+		colors[0] = .{
+			action = .CLEAR,
+			value  = .{ 0.5, 0.5, 1.0, 1.0 },
+		}
+	}
 };
 
 main :: () {
@@ -30,33 +37,45 @@ main :: () {
 	sapp_run(*desc);
 }
 
+Vertex :: struct {
+	x, y: float;
+	r, g, b: float;
+}
+
 init :: () {
 	desc: sg_desc;
 	desc._context = sapp_sgcontext();
 	sg_setup(*desc);
 
 	// Vetex Buffer
-	verticies := float.[
-		// postions    colors
-		-0.5,  0.5,  0.5,  1.0, 0.0, 0.0, 1.0, // top left
-		 0.5,  0.5,  0.5,  0.0, 1.0, 0.0, 1.0, // top right
-		 0.5, -0.5,  0.5,  0.0, 0.0, 1.0, 1.0, // bottom right
-		-0.5, -0.5,  0.5,  1.0, 0.0, 0.0, 1.0, // bottom left
+	verticies := Vertex.[
+		// triangle
+		.{ 0.00,  0.55,   1, 0, 0},
+		.{ 0.25,  0.05,   0, 1, 0},
+		.{-0.25,  0.05,   0, 0, 1},
+		// quad
+		.{-0.25, -0.05,   0, 0, 1},
+		.{ 0.25, -0.05,   0, 1, 0},
+		.{ 0.25, -0.55,   1, 0, 0},
+		.{-0.25, -0.55,   1, 1, 0},
 	];
 	state.bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
 		type = .VERTEXBUFFER,
 		data = sg_range.{
 			ptr = verticies.data,
-			size = verticies.count * size_of(float),
+			size = verticies.count * size_of(Vertex),
 		},
-		size = verticies.count * size_of(float),
-		label = "quad-verticies",
+		size = verticies.count * size_of(Vertex),
+		label = "vertex-buffer",
 	});
 
 	// Index Buffer
 	indices := u16.[
-		0, 1, 2, // top right
-		0, 2, 3, // bottom left
+		// triangle
+		0, 1, 2,
+		// quad
+		0, 1, 2,
+		0, 2, 3,
 	];
 	state.bindings.index_buffer = sg_make_buffer(*sg_buffer_desc.{
 		type = .INDEXBUFFER,
@@ -65,13 +84,13 @@ init :: () {
 			size = indices.count * size_of(u16),
 		},
 		size = indices.count * size_of(u16),
-		label = "quad-indices",
+		label = "index-buffer",
 	});
 
 	// Shader Pipeline
 	state.pipeline = sg_make_pipeline(*sg_pipeline_desc.{
 		shader = sg_make_shader(*sg_shader_desc.{
-			label = "simple_shader",
+			label = "simple-shader",
 			attrs[0].name = "position",
 			attrs[1].name = "color0",
 			vs = .{
@@ -85,18 +104,11 @@ init :: () {
 		}),
 		index_type = .UINT16,
 		layout = sg_layout_desc.{
-			attrs[0].format = .FLOAT3,
-			attrs[1].format = .FLOAT4,
+			attrs[0].format = .FLOAT2,
+			attrs[1].format = .FLOAT3,
 		},
-		label = "quad-pipeline",
+		label = "pipeline",
 	});
-
-	state.pass_action = .{
-		colors[0] = .{
-			action = .CLEAR,
-			value  = .{ 0, 0, 0, 1 },
-		}
-	};
 }
 
 cleanup :: () {
@@ -105,8 +117,17 @@ cleanup :: () {
 
 frame :: () {
 	sg_begin_default_pass(*state.pass_action, sapp_width(), sapp_height());
-
 	sg_apply_pipeline(state.pipeline);
+
+	// triangle
+	state.bindings.vertex_buffer_offsets[0] = 0;
+	state.bindings.index_buffer_offset = 0;
+	sg_apply_bindings(*state.bindings);
+	sg_draw(0, 3, 1);
+
+	// quad
+	state.bindings.vertex_buffer_offsets[0] = 3 * size_of(Vertex);
+	state.bindings.index_buffer_offset = 3 * size_of(u16);
 	sg_apply_bindings(*state.bindings);
 	sg_draw(0, 6, 1);
 
@@ -128,8 +149,8 @@ event :: (e: *sapp_event) {
 VERT_SHADER :: #string END_VERT
 #version 330
 
-layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 color0;
+layout(location=0) in vec4 position;
+layout(location=1) in vec4 color0;
 out vec4 color;
 
 void main() {
