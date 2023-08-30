@@ -1,0 +1,3 @@
+[submodule "modules/Sokol"]
+	path = modules/Sokol
+	url = git@github.com:marvhus/jai-sokol.git
