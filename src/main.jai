@@ -1,18 +1,5 @@
 c_context: Context;
 
-state: struct {
-	pipeline    : sg_pipeline;
-	bindings    : sg_bindings;
-	pass_action : sg_pass_action;
-} = .{
-	pass_action = .{
-		colors[0] = .{
-			action = .CLEAR,
-			value  = .{ 0.5, 0.5, 1.0, 1.0 },
-		}
-	}
-};
-
 main :: () {
 	desc := sapp_desc.{
 		init_cb = () #c_call {
@@ -37,6 +24,48 @@ main :: () {
 	sapp_run(*desc);
 }
 
+// VERTEX SHADER
+VERT_SHADER :: #string END_VERT
+#version 330
+
+layout(location=0) in vec4 position;
+layout(location=1) in vec4 color0;
+out vec4 color;
+
+void main() {
+	gl_Position = position;
+	color = color0;
+}
+END_VERT;
+
+// FRAGMENT SHADER
+FRAG_SHADER :: #string END_FRAG
+#version 330
+
+in vec4 color;
+out vec4 frag_color;
+
+void main() {
+	frag_color = color;
+}
+END_FRAG;
+
+state: struct {
+	pipeline    : sg_pipeline;
+	bindings    : sg_bindings;
+	pass_action : sg_pass_action;
+
+	verticies: []Vertex;
+	indices: []u16;
+} = .{
+	pass_action = .{
+		colors[0] = .{
+			action = .CLEAR,
+			value  = .{ 0.5, 0.5, 1.0, 1.0 },
+		}
+	}
+};
+
 Vertex :: struct {
 	x, y: float;
 	r, g, b: float;
@@ -47,19 +76,14 @@ init :: () {
 	desc._context = sapp_sgcontext();
 	sg_setup(*desc);
 
+	using state;
 	// Vetex Buffer
-	verticies := Vertex.[
-		// triangle
-		.{ 0.00,  0.55,   1, 0, 0},
-		.{ 0.25,  0.05,   0, 1, 0},
-		.{-0.25,  0.05,   0, 0, 1},
-		// quad
-		.{-0.25, -0.05,   0, 0, 1},
-		.{ 0.25, -0.05,   0, 1, 0},
-		.{ 0.25, -0.55,   1, 0, 0},
-		.{-0.25, -0.55,   1, 1, 0},
+	verticies = .[
+		.{ 0.00,  0.50,   1, 0, 0},
+		.{ 0.50, -0.50,   0, 1, 0},
+		.{-0.50, -0.50,   0, 0, 1},
 	];
-	state.bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
+	bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
 		type = .VERTEXBUFFER,
 		data = sg_range.{
 			ptr = verticies.data,
@@ -70,14 +94,10 @@ init :: () {
 	});
 
 	// Index Buffer
-	indices := u16.[
-		// triangle
+	indices = .[
 		0, 1, 2,
-		// quad
-		0, 1, 2,
-		0, 2, 3,
 	];
-	state.bindings.index_buffer = sg_make_buffer(*sg_buffer_desc.{
+	bindings.index_buffer = sg_make_buffer(*sg_buffer_desc.{
 		type = .INDEXBUFFER,
 		data = sg_range.{
 			ptr = indices.data,
@@ -88,7 +108,7 @@ init :: () {
 	});
 
 	// Shader Pipeline
-	state.pipeline = sg_make_pipeline(*sg_pipeline_desc.{
+	pipeline = sg_make_pipeline(*sg_pipeline_desc.{
 		shader = sg_make_shader(*sg_shader_desc.{
 			label = "simple-shader",
 			attrs[0].name = "position",
@@ -116,20 +136,13 @@ cleanup :: () {
 }
 
 frame :: () {
-	sg_begin_default_pass(*state.pass_action, sapp_width(), sapp_height());
-	sg_apply_pipeline(state.pipeline);
+	using state;
 
-	// triangle
-	state.bindings.vertex_buffer_offsets[0] = 0;
-	state.bindings.index_buffer_offset = 0;
-	sg_apply_bindings(*state.bindings);
-	sg_draw(0, 3, 1);
+	sg_begin_default_pass(*pass_action, sapp_width(), sapp_height());
+	sg_apply_pipeline(pipeline);
 
-	// quad
-	state.bindings.vertex_buffer_offsets[0] = 3 * size_of(Vertex);
-	state.bindings.index_buffer_offset = 3 * size_of(u16);
-	sg_apply_bindings(*state.bindings);
-	sg_draw(0, 6, 1);
+	sg_apply_bindings(*bindings);
+	sg_draw(0, xx indices.count, 1);
 
 	sg_end_pass();
 	sg_commit();
@@ -145,30 +158,6 @@ event :: (e: *sapp_event) {
 		}
 	}
 }
-
-VERT_SHADER :: #string END_VERT
-#version 330
-
-layout(location=0) in vec4 position;
-layout(location=1) in vec4 color0;
-out vec4 color;
-
-void main() {
-	gl_Position = position;
-	color = color0;
-}
-END_VERT;
-
-FRAG_SHADER :: #string END_FRAG
-#version 330
-
-in vec4 color;
-out vec4 frag_color;
-
-void main() {
-	frag_color = color;
-}
-END_FRAG;
 
 #import "Basic";
 #import "Sokol";
