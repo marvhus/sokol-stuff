@@ -26,27 +26,23 @@ main :: () {
 
 // VERTEX SHADER
 VERT_SHADER :: #string END_VERT
-#version 330
+#version 330 core
 
-layout(location=0) in vec4 position;
-layout(location=1) in vec4 color0;
-out vec4 color;
+layout (location = 0) in vec2 position;
 
 void main() {
-	gl_Position = position;
-	color = color0;
+	gl_Position = vec4(position, 0.0f, 1.0f);
 }
 END_VERT;
 
 // FRAGMENT SHADER
 FRAG_SHADER :: #string END_FRAG
-#version 330
+#version 330 core
 
-in vec4 color;
 out vec4 frag_color;
 
 void main() {
-	frag_color = color;
+	frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 }
 END_FRAG;
 
@@ -61,26 +57,23 @@ state: struct {
 	pass_action = .{
 		colors[0] = .{
 			action = .CLEAR,
-			value  = .{ 0.5, 0.5, 1.0, 1.0 },
+			value  = .{ 0.2, 0.3, 0.3, 1.0 },
 		}
 	},
 
 	verticies = .[
-		.{-1.00,  1.00,   1, 0, 0},
-		.{ 1.00,  1.00,   0, 1, 0},
-		.{ 1.00, -1.00,   0, 0, 1},
-		.{-1.00, -1.00,   1, 0, 1},
+		.{ 0.0,  0.5},
+		.{ 0.5, -0.5},
+		.{-0.5, -0.5},
 	],
 
 	indices = .[
 		0, 1, 2,
-		0, 2, 3,
 	]
 };
 
 Vertex :: struct {
 	x, y: float;
-	r, g, b: float;
 }
 
 init :: () {
@@ -130,7 +123,7 @@ init :: () {
 		index_type = .UINT16,
 		layout = sg_layout_desc.{
 			attrs[0].format = .FLOAT2,
-			attrs[1].format = .FLOAT3,
+			//attrs[1].format = .FLOAT3,
 		},
 		label = "pipeline",
 	});
