@@ -63,7 +63,17 @@ state: struct {
 			action = .CLEAR,
 			value  = .{ 0.5, 0.5, 1.0, 1.0 },
 		}
-	}
+	},
+
+	verticies = .[
+		.{ 0.00,  0.50,   1, 0, 0},
+		.{ 0.50, -0.50,   0, 1, 0},
+		.{-0.50, -0.50,   0, 0, 1},
+	],
+
+	indices = .[
+		0, 1, 2,
+	]
 };
 
 Vertex :: struct {
@@ -77,12 +87,8 @@ init :: () {
 	sg_setup(*desc);
 
 	using state;
+
 	// Vetex Buffer
-	verticies = .[
-		.{ 0.00,  0.50,   1, 0, 0},
-		.{ 0.50, -0.50,   0, 1, 0},
-		.{-0.50, -0.50,   0, 0, 1},
-	];
 	bindings.vertex_buffers[0] = sg_make_buffer(*sg_buffer_desc.{
 		type = .VERTEXBUFFER,
 		data = sg_range.{
@@ -94,9 +100,6 @@ init :: () {
 	});
 
 	// Index Buffer
-	indices = .[
-		0, 1, 2,
-	];
 	bindings.index_buffer = sg_make_buffer(*sg_buffer_desc.{
 		type = .INDEXBUFFER,
 		data = sg_range.{
@@ -139,6 +142,7 @@ frame :: () {
 	using state;
 
 	sg_begin_default_pass(*pass_action, sapp_width(), sapp_height());
+
 	sg_apply_pipeline(pipeline);
 
 	sg_apply_bindings(*bindings);
