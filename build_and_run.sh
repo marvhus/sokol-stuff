@@ -9,5 +9,5 @@ cd "$(dirname "$(readlink -f "$0")")"
 echo '===== BUILD ====='
 jai first.jai -import_dir modules
 echo '====== RUN ======'
-./bin/jmp
+./bin/sokol-stuff
 echo '================='

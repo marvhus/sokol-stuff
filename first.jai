@@ -1,7 +1,7 @@
 main :: () {
 	set_build_options_dc(.{do_output=false});
 
-	workspace := compiler_create_workspace("JMP");
+	workspace := compiler_create_workspace("Sokol Stuff");
 	if !workspace {
 		log_error("Failed to create workspace.\n");
 		return;
@@ -13,7 +13,7 @@ main :: () {
 	// configure build options
 	options := get_build_options(workspace);
 
-	options.output_executable_name = "jmp";
+	options.output_executable_name = "sokol-stuff";
 	options.output_path = "bin/";
 
 	import_path: [..]string;
